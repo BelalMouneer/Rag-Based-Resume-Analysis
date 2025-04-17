@@ -1,15 +1,15 @@
-from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.llms.groq import Groq
 from llama_index.core import PromptTemplate
 from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 from llama_index.core import Settings
 from llama_index.embeddings.langchain import LangchainEmbedding
 from llama_index.core.node_parser import SentenceSplitter
 import torch
-from transformers import BitsAndBytesConfig
+import os
 from dotenv import load_dotenv
 load_dotenv()
 
-def get_llm_settings(contect_window: int, max_new_token: int, ):
+def get_llm_settings(contect_window: int, max_new_token: int):
     system_prompt = """
     You are a Q&A assistant. Your goal is to answer questions based on the text \
     given. You'll also provide the previous chat history if there is any so \
@@ -18,16 +18,14 @@ def get_llm_settings(contect_window: int, max_new_token: int, ):
 
     query_wrapper_prompt = PromptTemplate("<|USER|>{query_str}<|ASSISTANT|>")
 
-    llm = HuggingFaceLLM(
+    llm = Groq(
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        api_key=os.getenv("GROQ_API_KEY"),
         context_window=contect_window,
-        max_new_tokens=max_new_token,
-        generate_kwargs={"temperature": 0.0, "do_sample": False},
+        max_tokens=max_new_token,
+        temperature=0.0,
         system_prompt=system_prompt,
-        query_wrapper_prompt=query_wrapper_prompt,
-        tokenizer_name='meta-llama/Meta-Llama-3.1-8B-Instruct',
-        model_name='meta-llama/Meta-Llama-3.1-8B-Instruct',
-        device_map='auto',
-        model_kwargs={"torch_dtype": torch.float16, "quantization_config": BitsAndBytesConfig(num_bits=8)}
+        query_wrapper_prompt=query_wrapper_prompt
     )
 
     embed_model = LangchainEmbedding(

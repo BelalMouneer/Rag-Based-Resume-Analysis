@@ -9,6 +9,7 @@ bitsandbytes==0.45.0
 langchain-community==0.3.12
 llama-index-embeddings-langchain==0.3.0
 sentence-transformers
+llama-index-llms-groq
 
 # server
 fastapi 
