@@ -1,9 +1,9 @@
-from llama_index.llms.groq import Groq
-from llama_index.core import PromptTemplate
+from llama_index.llms.groq import Groq # type: ignore
+from llama_index.core import PromptTemplate # type: ignore
 from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
-from llama_index.core import Settings
-from llama_index.embeddings.langchain import LangchainEmbedding
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core import Settings # type: ignore
+from llama_index.embeddings.langchain import LangchainEmbedding # type: ignore
+from llama_index.core.node_parser import SentenceSplitter # type: ignore
 import torch
 import os
 from dotenv import load_dotenv

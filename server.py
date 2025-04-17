@@ -1,6 +1,6 @@
 import asyncio
 import uvicorn
-from pyngrok import ngrok
+from pyngrok import ngrok # type: ignore
 import os
 import sys
 import socket

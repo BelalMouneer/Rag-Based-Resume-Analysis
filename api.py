@@ -6,9 +6,9 @@ import os
 import json
 import shutil
 from datetime import datetime
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
-from llama_index.core.response_synthesizers import ResponseMode
-from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document # type: ignore
+from llama_index.core.response_synthesizers import ResponseMode # type: ignore
+from llama_index.core.node_parser import SentenceSplitter # type: ignore
 from main import get_llm_settings
 from dotenv import load_dotenv
 load_dotenv()
