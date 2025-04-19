@@ -7,6 +7,8 @@ import pandas as pd
 from io import BytesIO
 import os
 
+from api import get_ats_score
+
 # Initialize session state variables first - before anything else
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -24,6 +26,12 @@ if "uploaded_files" not in st.session_state:
     st.session_state.uploaded_files = {}
 if "active_files" not in st.session_state:
     st.session_state.active_files = []
+if "job_description" not in st.session_state:
+    st.session_state.job_description = None
+if "ats_mode" not in st.session_state:
+    st.session_state.ats_mode = False
+if "ats_scores" not in st.session_state:
+    st.session_state.ats_scores = {}
 
 def send_message(url, message, file_info=None, multiple_files=None):
     try:
@@ -154,6 +162,28 @@ with st.sidebar:
 
     st.header("🔧 Backend Configuration")
     
+    st.header("🔍 ATS Mode")
+    ats_toggle = st.toggle("Enable ATS Mode", value=st.session_state.ats_mode)
+
+    if ats_toggle != st.session_state.ats_mode:
+        st.session_state.ats_mode = ats_toggle
+        # Clear previous scores when toggling
+        st.session_state.ats_scores = {}
+        st.rerun()
+
+    if st.session_state.ats_mode:
+        st.write("Upload a job description and compare with resumes")
+        job_description = st.text_area(
+            "Paste Job Description", 
+            value=st.session_state.job_description if st.session_state.job_description else "",
+            height=200
+        )
+        
+        if job_description != st.session_state.job_description:
+            st.session_state.job_description = job_description
+            # Clear previous scores when job description changes
+            st.session_state.ats_scores = {}
+
     st.header("💬 Chat Management")
     
     # Chat selection dropdown
@@ -263,12 +293,81 @@ with col1:
         })
         st.dataframe(file_stats, hide_index=True)
 
+    st.write("Active files:", st.session_state.active_files)
+    st.write("Uploaded files keys:", list(st.session_state.uploaded_files.keys()))
+
 with col2:
     # Display current chat name
     if st.session_state.active_files and len(st.session_state.active_files) > 1:
         st.markdown(f"### 💬 {st.session_state.current_chat} - Analyzing {len(st.session_state.active_files)} Files")
     else:
         st.markdown(f"### 💬 {st.session_state.current_chat}")
+    
+    # Add this before the chat container in col2
+    if st.session_state.ats_mode and st.session_state.job_description:
+        st.markdown("### 📊 ATS Matching Scores")
+        
+        if not st.session_state.active_files:
+            st.warning("Please upload resumes to analyze")
+        else:
+            # Process button
+            if st.button("Run ATS Analysis"):
+                with st.spinner("Analyzing resumes against job description..."):
+                    for resume_name in st.session_state.active_files:
+                        # Skip if already scored
+                        if resume_name in st.session_state.ats_scores:
+                            continue
+                        
+                        # Check if resume_name exists in uploaded_files
+                        if resume_name not in st.session_state.uploaded_files:
+                            st.error(f"File '{resume_name}' not found in uploaded files. Please re-upload.")
+                            continue
+                            
+                        resume_data = st.session_state.uploaded_files[resume_name]
+                        score_data = get_ats_score(
+                            st.session_state.job_description,
+                            resume_data,
+                            api_url
+                        )
+                        
+                        # Store score data
+                        st.session_state.ats_scores[resume_name] = score_data
+            
+            # Display scores if available
+            if st.session_state.ats_scores:
+                # Create score dataframe
+                score_data = []
+                for name, data in st.session_state.ats_scores.items():
+                    score_data.append({
+                        "Resume": name,
+                        "Match Score": f"{data['score']}%" if data['score'] is not None else "N/A"
+                    })
+                    
+                # Convert to DataFrame and sort by score
+                score_df = pd.DataFrame(score_data)
+                if not score_df.empty:
+                    # Extract numeric scores for sorting
+                    score_df["Numeric Score"] = score_df["Match Score"].apply(
+                        lambda x: int(x.replace("%", "")) if x != "N/A" else 0
+                    )
+                    score_df = score_df.sort_values("Numeric Score", ascending=False)
+                    # Drop the numeric column used for sorting
+                    score_df = score_df.drop("Numeric Score", axis=1)
+                    
+                # Display the table
+                st.dataframe(score_df, hide_index=True, use_container_width=True)
+                
+                # Add a section to view detailed analysis
+                st.subheader("Detailed Analysis")
+                selected_resume = st.selectbox(
+                    "Select resume to view detailed analysis",
+                    options=list(st.session_state.ats_scores.keys())
+                )
+                
+                if selected_resume:
+                    analysis = st.session_state.ats_scores[selected_resume]["full_analysis"]
+                    st.markdown(f"### Analysis for {selected_resume}")
+                    st.markdown(analysis)
     
     # Create chat container with custom styling
     chat_container = st.container(height=500)

@@ -5,6 +5,7 @@ from typing import List, Dict, Optional, Any
 import os
 import json
 import shutil
+import requests
 from datetime import datetime
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document # type: ignore
 from llama_index.core.response_synthesizers import ResponseMode # type: ignore
@@ -165,6 +166,76 @@ def chat_with_llama(chat_history: List[ChatMessage], message: str, file_paths: O
     # Query the engine
     response = query_engine.query(full_query)
     return response
+def get_ats_score(job_description, resume_data, api_url):
+    """Get ATS score for a resume compared to a job description"""
+    try:
+        # Create a structured prompt for deterministic scoring
+        structured_prompt = f"""
+        Please analyze this resume against the job description. 
+        
+        Extract all relevant keywords from the job description and check if they exist in the resume.
+        Use the following scoring method:
+        1. Calculate exact keyword matches (weighted at 70%)
+        2. Calculate semantic/synonym matches (weighted at 30%)
+        3. Provide a final percentage score
+        
+        Format your response exactly as follows:
+        SCORE: [0-100]
+        MATCHED KEYWORDS: [comma-separated list]
+        MISSING KEYWORDS: [comma-separated list]
+        ANALYSIS: [brief explanation]
+        
+        JOB DESCRIPTION:
+        {job_description}
+        """
+        
+        # Create data for API request
+        data = {
+            "message": structured_prompt,
+            "chat_history": []  # Empty to ensure consistency
+        }
+        
+        # Package the resume for sending
+        files = {
+            "file": (
+                resume_data["name"], 
+                resume_data["content"], 
+                resume_data["type"]
+            )
+        }
+        
+        # Send to API
+        response = requests.post(
+            f"{api_url}/chat",
+            data={"data": json.dumps(data)},
+            files=files
+        )
+        
+        response.raise_for_status()
+        result = response.json()
+        
+        # Parse the score from the response
+        response_text = str(result["response"])
+        
+        # Extract score using regex
+        import re
+        score_match = re.search(r'SCORE:\s*(\d+)', response_text)
+        if score_match:
+            score = int(score_match.group(1))
+        else:
+            score = None
+            
+        return {
+            "score": score,
+            "full_analysis": response_text
+        }
+        
+    except Exception as e:
+        print(f"Error getting ATS score: {str(e)}")
+        return {"score": None, "full_analysis": f"Error: {str(e)}"}
+        return {"score": None, "full_analysis": f"Error: {str(e)}"}
+
+
 
 @app.get("/")
 def home():
