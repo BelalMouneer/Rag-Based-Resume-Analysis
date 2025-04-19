@@ -33,6 +33,53 @@ if "ats_mode" not in st.session_state:
 if "ats_scores" not in st.session_state:
     st.session_state.ats_scores = {}
 
+def sync_uploaded_files_with_session():
+    """Sync files in uploaded_files directory with session state variables"""
+    # Check if the upload directory exists
+    upload_dir = "uploaded_files"
+    if not os.path.exists(upload_dir):
+        return
+        
+    # Get list of files in the directory
+    files_in_directory = os.listdir(upload_dir)
+    
+    # For each file in directory, check if it's in session state
+    for filename in files_in_directory:
+        filepath = os.path.join(upload_dir, filename)
+        if os.path.isfile(filepath):
+            # Handle timestamp prefix in filenames
+            display_name = filename
+            if '_' in filename:
+                # Remove timestamp prefix (e.g., 20250419_111011_)
+                parts = filename.split('_', 2)
+                if len(parts) >= 3:
+                    display_name = parts[2]  # Get the part after the timestamp
+            
+            # Check if we need to add to session state
+            if display_name not in st.session_state.uploaded_files:
+                with open(filepath, 'rb') as f:
+                    file_content = f.read()
+                    
+                # Determine file type from extension
+                file_type = "application/octet-stream"  # Default
+                if display_name.lower().endswith('.pdf'):
+                    file_type = "application/pdf"
+                elif display_name.lower().endswith('.docx'):
+                    file_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                elif display_name.lower().endswith('.doc'):
+                    file_type = "application/msword"
+                elif display_name.lower().endswith('.txt'):
+                    file_type = "text/plain"
+                    
+                # Add to session state
+                st.session_state.uploaded_files[display_name] = {
+                    "name": display_name,
+                    "content": file_content,
+                    "type": file_type
+                }
+
+sync_uploaded_files_with_session()
+
 def send_message(url, message, file_info=None, multiple_files=None):
     try:
         data = {
@@ -234,6 +281,14 @@ with col1:
                 }
                 st.session_state.current_file = uploaded_file.name
                 st.session_state.active_files = [uploaded_file.name]
+                
+                # Add to uploaded_files dictionary too
+                st.session_state.uploaded_files[uploaded_file.name] = {
+                    "name": uploaded_file.name,
+                    "content": uploaded_file.getvalue(),
+                    "type": uploaded_file.type
+                }
+                
                 st.success(f"File '{uploaded_file.name}' uploaded successfully!")
         else:
             st.info(f"📄 Current file: **{st.session_state.current_file}**")
@@ -313,25 +368,50 @@ with col2:
             # Process button
             if st.button("Run ATS Analysis"):
                 with st.spinner("Analyzing resumes against job description..."):
-                    for resume_name in st.session_state.active_files:
+                    # Sync with filesystem first
+                    sync_uploaded_files_with_session()
+                    
+                    # Debug information
+                    st.write("Debug - Active files:", st.session_state.active_files)
+                    st.write("Debug - Uploaded files keys:", list(st.session_state.uploaded_files.keys()))
+                    
+                    # If no active files but we have uploaded files, use them all
+                    if not st.session_state.active_files and st.session_state.uploaded_files:
+                        st.session_state.active_files = list(st.session_state.uploaded_files.keys())
+                    
+                    # Reset active files to only contain files that actually exist in uploaded_files
+                    valid_active_files = [file for file in st.session_state.active_files 
+                                         if file in st.session_state.uploaded_files]
+                    
+                    if len(valid_active_files) == 0:
+                        st.error("No valid files found. Please re-upload your resumes.")
+                    elif len(valid_active_files) != len(st.session_state.active_files):
+                        st.warning(f"Some selected files weren't found in the uploaded files. Only analyzing {len(valid_active_files)} valid files.")
+                        # Update active_files to only include valid files
+                        st.session_state.active_files = valid_active_files
+                        
+                    # Process each valid file
+                    for resume_name in valid_active_files:
                         # Skip if already scored
                         if resume_name in st.session_state.ats_scores:
                             continue
                         
-                        # Check if resume_name exists in uploaded_files
-                        if resume_name not in st.session_state.uploaded_files:
-                            st.error(f"File '{resume_name}' not found in uploaded files. Please re-upload.")
-                            continue
+                        try:
+                            # Get the resume data
+                            resume_data = st.session_state.uploaded_files[resume_name]
                             
-                        resume_data = st.session_state.uploaded_files[resume_name]
-                        score_data = get_ats_score(
-                            st.session_state.job_description,
-                            resume_data,
-                            api_url
-                        )
-                        
-                        # Store score data
-                        st.session_state.ats_scores[resume_name] = score_data
+                            # Get the score
+                            score_data = get_ats_score(
+                                st.session_state.job_description,
+                                resume_data,
+                                api_url
+                            )
+                            
+                            # Store score data
+                            st.session_state.ats_scores[resume_name] = score_data
+                            
+                        except Exception as e:
+                            st.error(f"Error processing {resume_name}: {str(e)}")
             
             # Display scores if available
             if st.session_state.ats_scores:
