@@ -182,30 +182,93 @@ def create_new_chat():
 
 # Streamlit app
 st.set_page_config(
-    page_title="Resume Analysis Chatbot",
-    page_icon="📄",
-    layout="wide"
+    page_title="MegaDev Intelligent System for Resumes Analysis",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# Custom CSS for better styling
+st.markdown("""
+<style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .stApp {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    h1, h2, h3 {
+        color: #2C3E50;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .sidebar .sidebar-content {
+        background-color: #2C3E50;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #3498DB;
+        color: white;
+        border-radius: 5px;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+    }
+    .stButton>button:hover {
+        background-color: #2980B9;
+    }
+    .chat-container {
+        border: 1px solid #e6e6e6;
+        border-radius: 10px;
+        padding: 1rem;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .file-info {
+        background-color: #e8f4fd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .file-stats {
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+    }
+    .stDataFrame {
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .success-msg {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    .stSelectbox label, .stMultiSelect label {
+        color: #2C3E50;
+        font-weight: bold;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 api_url = os.getenv("API_URL", "http://localhost:7000")  # Default to localhost if not set
 st.session_state["backend_url"] = api_url  # Store URL in session state
-st.info(f"Connected to backend at {api_url}")
 
-# App title with styling
+# App title with enhanced styling
 st.markdown("""
-    <h1 style='text-align: center; color: #4B8BBE;'>Resume Analysis Chatbot</h1>
-    <p style='text-align: center; color: #666;'>Upload resumes and chat with an AI assistant to analyze them</p>
+    <div style="text-align: center; padding: 1.5rem 0; background: linear-gradient(90deg, #3498db, #2c3e50); border-radius: 10px; margin-bottom: 20px;">
+        <h1 style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;">MegaDev Intelligent System for Resumes Analysis</h1>
+        <p style="color: #ecf0f1; font-size: 1.2rem;">Advanced AI-powered resume analysis and comparison platform</p>
+    </div>
 """, unsafe_allow_html=True)
+
+st.markdown(f"<div style='padding: 10px; background-color: #e2f0fd; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center;'><span style='color: #0366d6; margin-right: 10px;'>ℹ️</span><span>Connected to backend at <b>{api_url}</b></span></div>", unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.header("📋 Instructions")
-    st.markdown("""
-    To get the ngrok URL from Google Colab:
-    1. Run your FastAPI backend in Colab
-    2. Set up ngrok if not already
-    3. Copy the URL printed and paste it below
-    """)
 
     st.header("🔧 Backend Configuration")
     
