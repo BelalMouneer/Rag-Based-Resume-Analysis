@@ -16,6 +16,5 @@ fastapi
 uvicorn 
 streamlit 
 requests 
-pyngrok 
 python-multipart
 python-dotenv

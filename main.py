@@ -4,7 +4,6 @@ from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 from llama_index.core import Settings # type: ignore
 from llama_index.embeddings.langchain import LangchainEmbedding # type: ignore
 from llama_index.core.node_parser import SentenceSplitter # type: ignore
-import torch
 import os
 from dotenv import load_dotenv
 load_dotenv()
