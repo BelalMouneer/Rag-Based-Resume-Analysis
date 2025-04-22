@@ -21,15 +21,20 @@ A sophisticated AI-powered resume analysis platform that leverages Retrieval-Aug
 ## Setup
 
 1. Clone the repository
-2. Install dependencies:
+2. Create and activate a virtual environment:
+    ```bash
+    python -m venv venv
+    venv\scripts\activate
+    ```
+3. Install dependencies:
     ```bash
     pip install -r requirement.txt
     ```
-3. Create your environment file:
+4. Create your environment file:
     ```bash
     cp .env.example .env
     ```
-4. Edit the `.env` file with your API keys:
+5. Edit the `.env` file with your API keys:
     ```
     HF_TOKEN = "your_huggingface_token_here"
     NGROK_AUTHTOKEN = "your_ngrok_authtoken_here"
