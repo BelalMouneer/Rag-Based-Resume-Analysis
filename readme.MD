@@ -16,7 +16,6 @@ A sophisticated AI-powered resume analysis platform that leverages Retrieval-Aug
 - Python 3.8+
 - Groq API key (for LLM access)
 - Hugging Face token (for embedding models)
-- Ngrok authtoken (for public URL access, optional)
 
 ## Setup
 
@@ -37,7 +36,6 @@ A sophisticated AI-powered resume analysis platform that leverages Retrieval-Aug
 5. Edit the `.env` file with your API keys:
     ```
     HF_TOKEN = "your_huggingface_token_here"
-    NGROK_AUTHTOKEN = "your_ngrok_authtoken_here"
     GROQ_API_KEY = "your_groq_api_key_here"
     API_URL = "http://localhost:7000"  # Default for local deployment
     ```
@@ -51,7 +49,6 @@ python main.py
 
 This will:
 - Start the FastAPI backend server
-- Create a public URL using ngrok (if configured)
 - Display the URL to access the application
 
 ### Start the Streamlit frontend:

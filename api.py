@@ -14,8 +14,6 @@ from main import get_llm_settings
 from dotenv import load_dotenv
 load_dotenv()
 
-ngrok_key = os.getenv("NGROK_AUTHTOKEN")
-
 app = FastAPI()
 
 # Enable CORS
@@ -306,6 +304,5 @@ async def new_chat():
 if __name__ == "__main__":
     import uvicorn
     
-    # Run without ngrok
     print("Server running at http://localhost:7000")
     uvicorn.run(app, host="0.0.0.0", port=7000)
