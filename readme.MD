@@ -44,19 +44,13 @@ A sophisticated AI-powered resume analysis platform that leverages Retrieval-Aug
 
 ### Start the backend server:
 ```bash
-python main.py
+python server.py & streamlit run web.py
 ```
 
 This will:
 - Start the FastAPI backend server
 - Display the URL to access the application
-
-### Start the Streamlit frontend:
-```bash
-streamlit run web.py
-```
-
-Access the application through your browser at the provided URL.
+- Access the application through your browser at the provided URL.
 
 ## Usage Guide
 
