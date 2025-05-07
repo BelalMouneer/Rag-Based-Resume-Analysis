@@ -1,9 +1,10 @@
 langchain==0.3.12
 langchain-community
 sentence-transformers
-llama-index
-torch==2.0.1
+llama-index-core
 llama_index.llms.groq
+llama-index-embeddings-langchain
+torch==2.0.1
 pydantic
 python-multipart
 fastapi
@@ -11,4 +12,5 @@ uvicorn
 streamlit
 requests
 python-dotenv
-llama-index-embeddings-langchain
+transformers==4.37.0
+llama-index-readers-file

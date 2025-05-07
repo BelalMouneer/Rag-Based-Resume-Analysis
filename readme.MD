@@ -27,7 +27,7 @@ A sophisticated AI-powered resume analysis platform that leverages Retrieval-Aug
     ```
 3. Install dependencies:
     ```bash
-    pip install -r requirement.txt
+    pip install -r requirements.txt
     ```
 4. Create your environment file:
     ```bash
